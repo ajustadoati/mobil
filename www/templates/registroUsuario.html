@@ -1,0 +1,47 @@
+<ion-view title="Registro Usuario">
+    <ion-content overflow-scroll="true" padding="true" scroll="true" class="has-header">
+        <div id="map" data-tap-disabled="true"></div>
+        <form class="list" name="newUsuarioForm">
+            <ion-list>
+                <label class="item item-input">
+                    <span class="input-label">Nombre</span>
+                    <input type="text" ng-model="usuario.nombre" placeholder="" required>
+                </label>
+                <label class="item item-input">
+                    <span class="input-label">Email</span>
+                    <input type="text" ng-model="usuario.email" placeholder="" required> 
+                </label>
+                <label class="item item-input">
+                    <span class="input-label">Telefono</span>
+                    <input type="text" ng-model="usuario.telefono" placeholder="" required>
+                </label>
+                <label class="item item-input">
+                    <span class="input-label">Username</span>
+                    <input type="text" ng-model="usuario.user" placeholder="" required>
+                </label>
+                <label class="item item-input">
+                    <span class="input-label">Password</span>
+                    <input type="text" ng-model="usuario.password"  placeholder="" required>
+                </label>
+            </ion-list>
+            <multiselect
+              header-text="Header"
+              items="data"
+              text-property="nombre"
+              value-property="nombre"
+              is-translate="false"
+              index-translate="TAG_TRANSLATE"
+              text="Categor&iacute;as"
+              modal-template-url="lib/ionic-multiselect/dist/templates/modal-template.html"
+              template-url="lib/ionic-multiselect/dist/templates/item-template.html"
+              note-text="Registrar Categor&iacute;as si es Proveedor"
+              value-changed="onValueChanged(value)">
+            </multiselect>
+            <input type="submit"
+                       class="button button-stable button-block "
+                       ng-click="crearUsuario(newUsuarioForm);"
+                       value='Guardar'/>
+            
+        </form>
+    </ion-content>
+</ion-view>

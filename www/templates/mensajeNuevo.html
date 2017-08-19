@@ -1,0 +1,33 @@
+<ion-view view-title="Nuevo Mensaje">
+   
+    <ion-content overflow-scroll="true" padding="true" class="has-header">
+
+    	
+    	
+
+		<multiselect
+              header-text="Header"
+              items="data"
+              text-property="name"
+              value-property="name"
+              is-translate="false"
+              multi-select="true"
+              index-translate="TAG_TRANSLATE"
+              text="Contactos"
+              modal-template-url="lib/ionic-multiselect/dist/templates/modal-contacto-template.html"
+              template-url="lib/ionic-multiselect/dist/templates/contacto-template.html"
+              note-text="Note Text"
+              value-changed="onValueChanged(value)">
+            </multiselect>
+
+
+    </ion-content>
+    <ion-footer-bar keyboard-attach class="bar-stable item-input-inset">
+    <label class="item-input-wrapper">
+      <input type="text" placeholder="Type your message" on-return="showSendMessage(); closeKeyboard()" ng-model="data.message" on-focus="inputUp()" on-blur="inputDown()" />
+    </label>
+    <button class="button button-clear" ng-click="showSendMessage()">
+        Send
+    </button>
+  </ion-footer-bar>
+</ion-view>

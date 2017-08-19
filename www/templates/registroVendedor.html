@@ -1,0 +1,50 @@
+<ion-view title="Registro Vendedor">
+    <ion-content overflow-scroll="true" padding="true" scroll="true" class="has-header">
+       <div id="map" data-tap-disabled="true"></div>
+       <form class="list" name="newVendedorForm">
+            <ion-list>
+                <label class="item item-input">
+                    <span class="input-label">Nombre</span>
+                    <input type="text" ng-model="proveedor.usuario.nombre" placeholder="">
+                </label>
+                <label class="item item-input">
+                    <span class="input-label">Email</span>
+                    <input type="text" ng-model="proveedor.usuario.email" placeholder="">
+                </label>
+                
+                <label class="item item-input">
+                    <span class="input-label">Telefono</span>
+                    <input type="text" ng-model="proveedor.usuario.telefono" placeholder="">
+                </label>
+                <label class="item item-input">
+                    <span class="input-label">Username</span>
+                    <input type="text" ng-model="proveedor.usuario.user" placeholder="">
+                </label>
+                <label class="item item-input">
+                    <span class="input-label">Password</span>
+                    <input type="text" ng-model="proveedor.usuario.password"  placeholder="">
+                </label>
+            </ion-list>
+            <multiselect
+              header-text="Header"
+              items="data"
+              text-property="nombre"
+              value-property="nombre"
+              is-translate="false"
+              index-translate="TAG_TRANSLATE"
+              text="Categor&iacute;as"
+              modal-template-url="lib/ionic-multiselect/dist/templates/modal-template.html"
+              template-url="lib/ionic-multiselect/dist/templates/item-template.html"
+              note-text="Note Text"
+              value-changed="onValueChanged(value)">
+            </multiselect>
+
+            <input type="submit"
+                       class="button button-stable button-block "
+                       ng-click="crearVendedor(newVendedorForm);"
+                       value='Guardar'/>
+            
+        </form>
+       
+    </ion-content>
+</ion-view>
