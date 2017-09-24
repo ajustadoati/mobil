@@ -96,7 +96,9 @@ return categoriaService;
     var markerId = 0;
 
     function create(latitude, longitude, data) {
-        console.log("creando ubicacion");
+        console.log("creando ubicacion"+latitude);
+        console.log("creando ubicacion"+longitude);
+        console.log("creando ubicacion"+data);
         var marker = {
             options: {
                 animation: 1,
@@ -136,14 +138,20 @@ function getCurrentLocation(successCallback) {
         }
     }
     function invokeSuccessCallback(successCallback, marker) {
+        console.log("invokeSuccessCallback: "+marker.nombre);
         if (typeof successCallback === 'function') {
             successCallback(marker);
         }
     }
 
     function createByCoords(latitude, longitude, data, successCallback) {
+        console.log("createbycoords: "+latitude);
+        console.log("createbycoords: "+longitude);
+        console.log("createbycoords: "+data);
         var marker = create(latitude, longitude, data);
+        console.log("createbycoords: "+marker);
         invokeSuccessCallback(successCallback, marker);
+        console.log("createbycoords after: "+marker.latitude);
     }
 
     function createByAddress(address, successCallback) {
@@ -202,12 +210,46 @@ function getCurrentLocation(successCallback) {
 
 }])
 
+.factory('Peticiones', ['$rootScope', '$state', function($rootScope, $state){
+    PeticionObj={};
+
+    PeticionObj.peticiones=[];
+
+    PeticionObj.getAll= function() {
+        
+        return PeticionObj.peticiones;
+    }
+
+    PeticionObj.addPeticion = function(peticion){
+        console.log("addin request:"+peticion);
+        PeticionObj.peticiones.push(peticion);
+    }
+
+
+    PeticionObj.removePeticion= function(peticion) {
+        PeticionObj.peticiones.splice(PeticionObj.peticiones.indexOf(peticion), 1);
+    }
+
+    PeticionObj.getPeticion= function(time) {
+        for (var i = 0; i < PeticionObj.peticiones.length; i++) {
+            if (PeticionObj.peticiones[i].time == time) {
+              return PeticionObj.peticiones[i];
+            }
+          }
+    }   
+    
+    return PeticionObj;
+
+
+}])
+
 .factory('Chats', ['sharedConn','$rootScope','$state', function(sharedConn,$rootScope,$state){
     
     ChatsObj={};
     
     connection=sharedConn.getConnectObj();
     ChatsObj.roster =[];
+    ChatsObj.messages =[];
 
     loadRoster = function() {
             var iq = $iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'});
@@ -334,6 +376,15 @@ function getCurrentLocation(successCallback) {
         else
             return 0;
     }
+
+    ChatsObj.addMessage = function(msg){
+        console.log("addin message:"+msg);
+        ChatsObj.messages.push(msg);
+    }
+    ChatsObj.getMessages= function() {
+        
+        return ChatsObj.messages;
+    }
  
      ChatsObj.getId= function() {
         
@@ -373,7 +424,7 @@ $state for forwarding to another page
 $rootScope for accessing broadcast function
 $ionicPopup for making Responsive Popups 
 */
-.factory('sharedConn', ['$ionicPopup','$state','$rootScope','$ionicPopup',function($ionicPopup,$state, $rootScope , $ionicPopup ){
+.factory('sharedConn', ['$ionicPopup','$state','$rootScope','$ionicPopup', '$timeout','Peticiones',function($ionicPopup,$state, $rootScope , $ionicPopup, $timeout, Peticiones){
     console.log("SharedConn");
     //Declaring the SharedConnObj which will be returned when we call sharedConn
     var SharedConnObj={};
@@ -437,13 +488,86 @@ $ionicPopup for making Responsive Popups
     };
     //When a new message is recieved
     SharedConnObj.onMessage=function(msg){
-        console.log('receiving message'+msg);
+        console.log('receiving message from: '+msg);
+        console.log("current state:"+$state.current.name);
+        var elems = msg.getElementsByTagName('body');
+        var body = elems[0];
+        var textMsg = Strophe.getText(body);
+        var d = new Date();
+        d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
+        var user = msg.getAttribute("from").split("@")[0];
+          console.log("admin receive:"+textMsg);
+          var all = textMsg.split("---");
+          var text = all[0];
+          var latitud = all[1];
+          var longitud = all[2];
         //Here we will braodcast that we have recieved a message.
         //This broadcast will be handled in the 'Chat Details controller'
         //In broadcast we are also sending the message
-        $rootScope.$broadcast('msgRecievedBroadcast', msg );
+        //$state.go('tabsController.mensajeDetalle', {}, {location: "replace", reload: true});
+        //callBroadcast(msg);
+        //Chats.addMessage(message);
+        console.log("user: "+user);
+
+        if(user == "admin"){
+            var d = new Date();
+            d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
+            var peticion={
+                user:user,
+                text: text,
+                latitud:latitud,
+                longitud:longitud,
+                time: d
+              };
+            console.log("el usuario es admin: "+user);
+             if($state.current.name == "tabsController.peticionDetalle"){
+                PeticionObj.addPeticion(peticion);
+            }else{
+                var confirmPopup = $ionicPopup.confirm({
+                            title: 'Message from:'+user,
+                            template: ' ' + text
+                        });
+                        // Yes or No option
+                        confirmPopup.then(function(res) {
+                            if(res) {
+                                $rootScope.$broadcast('msgRecievedBroadcastAdmin', msg);
+                              } else {
+
+                                PeticionObj.addPeticion(peticion);
+                            }
+                        });
+            }
+
+            
+        }else {
+            if($state.current.name == "tabsController.detalleChat"){
+                console.log("si entra al tabs");
+                $rootScope.$broadcast('msgRecievedBroadcast2', msg);
+            }else{
+                var confirmPopup = $ionicPopup.confirm({
+                        title: 'Message from:'+msg.getAttribute("from"),
+                        template: ' ' + textMsg
+                    });
+                    // Yes or No option
+                    confirmPopup.then(function(res) {
+                        if(res) {
+                            callBroadcast(msg);
+                          } else {
+                       
+                        }
+                    });
+            }
+        }
         return true;
     };
+
+    callBroadcast = function(data) { 
+        console.log("llamando broadcast");
+        $timeout(function(){
+            $rootScope.$broadcast('msgRecievedBroadcast', data);
+        });
+    }
+
     SharedConnObj.register=function (jid,pass,name) {
         //to add register function
     };

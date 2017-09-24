@@ -49,6 +49,9 @@ angular.module('app.routes', [])
 
     .state('tabsController.solicitudes', {
       url: '/requests',
+      params:{
+            mensaje:null
+      },
       views: {
         'tab4': {
           templateUrl: 'templates/busqueda.html',
@@ -57,7 +60,30 @@ angular.module('app.routes', [])
       }
     })
 
-     .state('tabsController.comerciante', {
+    .state('tabsController.peticion', {
+      url: '/peticion',
+      views: {
+        'tab6': {
+          templateUrl: 'templates/peticion.html',
+          controller: 'peticionCtrl'
+        }
+      }
+    })
+
+    .state('tabsController.peticionDetalle', {
+      url: '/peticionDetalle',
+      params:{
+            peticion:null
+      },
+      views: {
+        'tab6': {
+          templateUrl: 'templates/peticionDetalle.html',
+          controller: 'peticionDetalleCtrl'
+        }
+      }
+    })
+
+    .state('tabsController.comerciante', {
       url: '/requests/:user',
       views: {
         'tab4': {
@@ -144,7 +170,8 @@ angular.module('app.routes', [])
     .state('tabsController', {
       url: '/homeVendedor',
       abstract:true,
-      templateUrl: 'templates/tabsController.html'
+      templateUrl: 'templates/tabsController.html',
+      controller: 'tabsCtrl'
     })
  
     .state('tabsController.ajustes', {

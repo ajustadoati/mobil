@@ -333,7 +333,7 @@ angular.module('app.controllers', [])
 
 })
    
-.controller('busquedaCtrl', function($scope, categoriaService, consultaService, $cordovaGeolocation, MapService) {
+.controller('busquedaCtrl', function($scope, categoriaService, consultaService, $cordovaGeolocation, MapService, sharedConn, $stateParams, ChatDetails) {
   console.log("busquedaCtrl")
   $scope.categorias=[];
   $scope.categoriasSelected=[];
@@ -346,6 +346,10 @@ angular.module('app.controllers', [])
   $scope.proveedores=[];
   $scope.map={};
   $scope.markers=[];
+  $scope.mensaje=$stateParams.mensaje;
+  $scope.userActual=sharedConn.getConnectObj().jid.split("@")[0];
+
+
 
 
   var ws = new WebSocket('ws://www.ajustadoati.com:8080/ajustadoatiWS/openfire');
@@ -514,6 +518,71 @@ angular.module('app.controllers', [])
           return resultado;
         }
 
+        $scope.addLocationRequest= function(latitud, longitud, data){
+          var resultado;
+          var image = {
+            url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+            size: new google.maps.Size(20, 32),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(0, 32)
+          };
+        
+          var shape = {
+            coords: [1, 1, 1, 20, 18, 20, 18, 1],
+            type: 'poly'
+          };
+          console.log("****************** agregando egistro:*************"+data.usuario);
+          MapService.createByCoords(latitud, longitud, data, function (marker) {
+           
+             var contentString = '<div id="content">'+
+              '<div id="siteNotice">'+
+              '</div>'+
+              '<h1 id="firstHeading" class="firstHeading">' +data.nombre+'</h1>'+
+              '<div id="bodyContent">'+
+              '<br><b>Tel&eacute;fono:</b> '+marker.telefono+
+              '<br><b>Usuario:</b>  '+ marker.usuario+
+              '<br><b>Mensaje:</b> <a href="#/homeVendedor/detalleChat">  '+marker.mensaje+
+              '</a></div>'+
+              '</div>';
+            var latLng = new google.maps.LatLng(marker.latitude, marker.longitude);
+
+           
+            
+               console.log("listeners");
+                  var mark = new google.maps.Marker({
+                    map: $scope.map,
+                    icon: image,
+                    shape: shape,
+                    animation: google.maps.Animation.DROP,
+                    position: latLng,
+                     mensaje:marker.mensaje,
+                    nombre:marker.nombre,
+                    telefono:marker.telefono,
+                    usuario:marker.usuario,
+                });      
+               
+               $scope.markers.push(mark);
+               console.log("size: "+$scope.markers.length);
+                var infoWindow = new google.maps.InfoWindow({
+                    content: contentString
+                });
+               
+                google.maps.event.addListener(mark, 'click', function () {
+
+                    infoWindow.open($scope.map, mark);
+                });
+                resultado = mark;
+            
+          });
+          
+           // $scope.map.markers.push(marker);
+            //refresh(marker);
+            $scope.mensaje = "";
+          return resultado;
+        }
+
+     
+
       MapService.createByCurrentLocation(function (marker) {
                 console.log("Llamando al service test");
                 marker.options.labelContent = 'Usted esta aqu&iacute;';
@@ -563,6 +632,16 @@ angular.module('app.controllers', [])
                 infoWindow.open($scope.map, mark);
             });
           });
+          if($scope.mensaje != "" && $scope.mensaje != null){
+            var data = {
+              nombre: "Cliente",
+              telefono:"5555",
+              mensaje:$scope.mensaje.text,
+              usuario:$scope.mensaje.user
+            };
+            ChatDetailsObj.setTo($scope.mensaje.user+"@ajustadoati.com");
+            //$scope.addLocationRequest($scope.mensaje.latitud, $scope.mensaje.longitud, data);
+          }
      });
 
   $scope.onValueChanged = function(value){
@@ -649,6 +728,8 @@ angular.module('app.controllers', [])
                   console.log('Saved Consulta.');
                   console.log('response:'+data[0].usuario.user);
                   $scope.proveedores=data;
+                  $scope.latitud = $scope.consulta.usuario.latitud;
+                  $scope.longitud = $scope.consulta.usuario.longitud;
                   $scope.consulta={};
                   $scope.categoriasSelected=[];
                   
@@ -673,13 +754,16 @@ angular.module('app.controllers', [])
                           };
 
                           $scope.addLocation($scope.proveedores[i].usuario.latitud, $scope.proveedores[i].usuario.longitud, usuario)
-                         
-                          if($scope.proveedores.length==(i+1)){
-                            console.log("fin de ciclo");
-                              resp=resp+$scope.proveedores[i].usuario.user;
-                          }else{
-                            console.log("sigue el ciclo");
-                              resp=resp+$scope.proveedores[i].usuario.user+"&&";
+                          if($scope.userActual != $scope.proveedores[i].usuario.user){
+                            if($scope.proveedores.length==(i+1)){
+                              console.log("fin de ciclo");
+                                resp=resp+$scope.proveedores[i].usuario.user;
+                            }else{
+                              console.log("sigue el ciclo");
+                                resp=resp+$scope.proveedores[i].usuario.user+"&&";
+                            }
+                          }else {
+                            console.log("usuario que envia la consulta");
                           }
                           
                         }
@@ -687,13 +771,268 @@ angular.module('app.controllers', [])
                         console.log("data a proveedores");
                         //$scope.sendData();
 
-                        var msg = '{"mensaje":"' + men + '", "users":"'+resp+'"}';
+                        var msg = '{"mensaje":"' + men + '", "users":"'+resp+'","latitud":"'+$scope.latitud+'","longitud":"'+$scope.longitud+'"}';
+                        console.log("msj:"+msg);
                         ws.send(msg);
 
                         
                     });
       }
 
+    
+})
+
+.controller('peticionDetalleCtrl', function($scope, categoriaService, consultaService, $cordovaGeolocation, MapService, $stateParams, sharedConn, $ionicScrollDelegate) {
+  console.log("peticionCtrl"+$stateParams.peticion.latitud);
+  $scope.categorias=[];
+  $scope.categoriasSelected=[];
+  $scope.latitud="";
+  $scope.longitud="";
+  $scope.consulta={};
+  $scope.consulta.producto={};
+  $scope.consulta.usuario={};
+  $scope.consulta.categoria={};
+  $scope.proveedores=[];
+  $scope.map={};
+  $scope.markers=[];
+  $scope.peticion=$stateParams.peticion;
+  $scope.response="";
+
+  var latLng = new google.maps.LatLng($scope.peticion.latitud,  $scope.peticion.longitud);
+ 
+  var mapOptions = {
+    center: latLng,
+    zoom: 13,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+  $scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
+
+
+     $scope.addLocation= function(latitud, longitud){
+          var resultado;
+
+            var image = {
+            url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+            size: new google.maps.Size(20, 32),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(0, 32)
+          };
+        
+          var shape = {
+            coords: [1, 1, 1, 20, 18, 20, 18, 1],
+            type: 'poly'
+          };
+          var data = {
+             nombre: "Cliente",
+            telefono:"5555",
+            mensaje:$scope.peticion.text,
+            usuario:$scope.peticion.user
+          };
+          console.log("****************** agregando registro:*************"+data.usuario);
+          MapService.createByCoords(latitud, longitud, data, function (marker) {
+            console.log("PeticionCtrl-- en el createcoords"+marker.latitud);
+             var contentString = '<div id="content">'+
+              '<div id="siteNotice">'+
+              '</div>'+
+              '<h1 id="firstHeading" class="firstHeading">' +data.nombre+'</h1>'+
+              '<div id="bodyContent">'+
+              '<br><b>Tel&eacute;fono:</b> '+marker.telefono+
+              '<br><b>Usuario:</b>  '+ marker.usuario+
+              '<br><b>Mensaje:</b> '+marker.mensaje+
+              '</a></div>'+
+              '</div>';
+              var latLng = new google.maps.LatLng(marker.latitude, marker.longitude);
+ 
+              var mapOptions = {
+                center: latLng,
+                zoom: 13,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+              };
+              //$scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
+            //var latLng = new google.maps.LatLng(marker.latitude, marker.longitude);
+
+           
+            
+               console.log("listeners");
+                 var mark = new google.maps.Marker({
+                    map: $scope.map,
+                    icon: image,
+                    shape: shape,
+                    animation: google.maps.Animation.DROP,
+                    position: latLng,
+                     mensaje:marker.mensaje,
+                    nombre:marker.nombre,
+                    telefono:marker.telefono,
+                    usuario:marker.usuario,
+                }); 
+                    
+               
+               $scope.markers.push(mark);
+               console.log("size: "+$scope.markers.length);
+                var infoWindow = new google.maps.InfoWindow({
+                    content: contentString
+                });
+               
+                google.maps.event.addListener(mark, 'click', function () {
+
+                    infoWindow.open($scope.map, mark);
+                });
+                resultado = mark;
+            
+          });
+          
+           // $scope.map.markers.push(marker);
+            //refresh(marker);
+          return resultado;
+        }
+
+        
+        $scope.addLocation($scope.peticion.latitud, $scope.peticion.longitud);
+
+        $scope.addLocationResponder= function(latitud, longitud, data){
+          var resultado;
+          var image = {
+            url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+            size: new google.maps.Size(20, 32),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(0, 32)
+          };
+        
+          var shape = {
+            coords: [1, 1, 1, 20, 18, 20, 18, 1],
+            type: 'poly'
+          };
+          console.log("****************** agregando egistro:*************"+data.usuario);
+          MapService.createByCoords(latitud, longitud, data, function (marker) {
+           
+             var contentString = '<div id="content">'+
+              '<div id="siteNotice">'+
+              '</div>'+
+              '<h1 id="firstHeading" class="firstHeading">' +data.nombre+'</h1>'+
+              '<div id="bodyContent">'+
+              '<br><b>Tel&eacute;fono:</b> '+marker.telefono+
+              '<br><b>Usuario:</b>  '+ marker.usuario+
+              '<br><b>Mensaje:</b> <a href="#/homeVendedor/requests/'+marker.usuario+'">  '+marker.mensaje+
+              '</a></div>'+
+              '</div>';
+            var latLng = new google.maps.LatLng(marker.latitude, marker.longitude);
+
+           
+            
+               console.log("listeners");
+                  var mark = new google.maps.Marker({
+                    map: $scope.map,
+                    icon: image,
+                    shape: shape,
+                    animation: google.maps.Animation.DROP,
+                    position: latLng,
+                     mensaje:marker.mensaje,
+                    nombre:marker.nombre,
+                    telefono:marker.telefono,
+                    usuario:marker.usuario,
+                });      
+               
+               $scope.markers.push(mark);
+               console.log("size: "+$scope.markers.length);
+                var infoWindow = new google.maps.InfoWindow({
+                    content: contentString
+                });
+               
+                google.maps.event.addListener(mark, 'click', function () {
+
+                    infoWindow.open($scope.map, mark);
+                });
+                resultado = mark;
+            
+          });
+          
+           // $scope.map.markers.push(marker);
+            //refresh(marker);
+          return resultado;
+        }
+
+     /* MapService.createByCurrentLocation(function (marker) {
+                console.log("Llamando al service test");
+                marker.options.labelContent = 'Usted esta aqu&iacute;';
+                $scope.consulta.usuario.latitud=marker.latitude;
+                $scope.consulta.usuario.longitud=marker.longitude;
+
+                
+                //refresh(marker
+                var latLng = new google.maps.LatLng($scope.consulta.usuario.latitud, $scope.consulta.usuario.longitud);
+ 
+              var mapOptions = {
+                center: latLng,
+                zoom: 13,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+              };
+           
+              $scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
+              google.maps.event.addListenerOnce($scope.map, 'idle', function(){
+           
+                var mark = new google.maps.Marker({
+                  map: $scope.map,
+                  animation: google.maps.Animation.DROP,
+                  position: latLng,
+                  mensaje:"mensaje",
+                  nombre:"usuario-ajustado",
+                  telefono:"555-555",
+                  usuario:"usuario-ajustado",
+                });      
+                $scope.markers.push(mark);
+             console.log("size: "+$scope.markers.length);
+             var contentString = '<div id="content">'+
+                '<div id="siteNotice">'+
+                '</div>'+
+                '<h1 id="firstHeading" class="firstHeading">Proveedor</h1>'+
+                '<div id="bodyContent">'+
+                '<p><b>Nombre:</b> ' +mark.nombre+
+                '<br><b>Tel&eacute;fono:</b> '+mark.telefono+
+                '<br><b>Usuario:</b>  '+ mark.usuario+
+                '<br><b>Mensaje:</b>  '+mark.mensaje+
+                '</div>'+
+                '</div>';
+              var infoWindow = new google.maps.InfoWindow({
+                  content:"Usted esta aqu&iacute; !"
+              });
+             
+            google.maps.event.addListener(mark, 'click', function () {
+                infoWindow.open($scope.map, mark);
+            });
+          });
+              
+     });*/
+
+    $scope.sendMsg=function(to,body){
+    var to_jid  = Strophe.getBareJidFromJid(to);
+    console.log("sending message"+to_jid);
+    var timestamp = new Date().getTime();
+    var reqChannelsItems = $msg({id:timestamp, to:to_jid , type: 'chat' })
+                   .c("body").t(body);
+    $scope.response="";
+    console.log(reqChannelsItems);
+    sharedConn.getConnectObj().send(reqChannelsItems.tree()); 
+  };
+  
+  
+
+  $scope.showSendMessage = function() {
+    
+  $scope.sendMsg($scope.peticion.user+"@ajustadoati.com",$scope.response);  
+
+    var d = new Date();
+    d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
+
+    /*$scope.messages.push({
+      userId: $scope.myId,
+      text: $scope.response,
+      time: d
+    });
+
+    delete $scope.data.message;*/
+    $ionicScrollDelegate.scrollBottom(true);
+
+  };
     
 })
    
@@ -705,7 +1044,7 @@ angular.module('app.controllers', [])
 
 })
    
-.controller('favoritosCtrl', function($scope, Chats, ChatDetails, $state, usuarioService, $ionicPopup) {
+.controller('favoritosCtrl', function($scope, Chats, ChatDetails, $state, usuarioService, $ionicPopup, $rootScope) {
   console.log('Favoritos ');
    $scope.add_jid = "";
   $scope.chats = Chats.allRoster();
@@ -739,9 +1078,59 @@ angular.module('app.controllers', [])
     $state.go('tabsController.favoritosChat', {}, {location: "replace", reload: true});
     };
 
+  
+
 
 })
 
+.controller('peticionCtrl', function($scope, $state, usuarioService, $ionicPopup, $rootScope, Peticiones) {
+  console.log('Peticion Ctrl');
+
+  $scope.peticiones = Peticiones.getAll();
+
+  $scope.peticionDetalle=function(id){
+    var peticion = Peticiones.getPeticion(id);
+    $state.go('tabsController.peticionDetalle', {peticion}, {location: "replace", reload: true});
+  }
+  
+  $scope.add = function(add_jid){
+    //Chats.addNewRosterContact(add_jid);
+    console.log('Buscando usuario '+add_jid);
+    usuarioService.getUserByUser(add_jid)
+        .success(function (data) {
+            if(!(data.status != null && data.status != undefined)){
+             console.log('User exist '+data.telefono);
+               $scope.add_jid = "";
+               $state.go('tabsController.detalleFavoritos', {user:data});
+              
+            }else{
+              $scope.add_jid = "";
+              var alertPopup = $ionicPopup.alert({
+                title: 'Usuario no existe !',
+                template: 'Por favor intenta de nuevo!'
+              });
+            }
+        }).
+        error(function(error) {
+            $scope.status = 'Unable to get user: ' + error.message;
+        });
+  };
+
+
+  $scope.removePeticion=function(peticion){
+    console.log("removing request");
+    PeticionObj.removePeticion(peticion);
+  }
+
+  $scope.chatDetails=function(to_id){ 
+    ChatDetailsObj.setTo(to_id+"@ajustadoati.com");
+    $state.go('tabsController.favoritosChat', {}, {location: "replace", reload: true});
+    };
+
+  
+
+
+})
 .controller('detalleFavoritosCtrl', function($scope, $stateParams, Chats, usuarioService, sharedConn) {
   console.log("cargando detalle favoritos"+$stateParams.user.user);
   $scope.usuario=$stateParams.user;
@@ -785,12 +1174,14 @@ angular.module('app.controllers', [])
   };
 })
 
-.controller('mensajeNuevoCtrl', function($scope, $state, $ionicPopup, $timeout, categoriaService, Chats, sharedConn) {
+.controller('mensajeNuevoCtrl', function($scope, $state, $ionicPopup, $timeout, categoriaService, Chats, sharedConn, $ionicScrollDelegate) {
 
   $scope.contactos=[];
   $scope.contactosSelected=[];
   $scope.data = Chats.getAllRoster();
   $scope.messages = [];
+  $scope.myId = sharedConn.getConnectObj().jid;
+  var isIOS = ionic.Platform.isIOS(); 
 
 
   $scope.onValueChanged = function(value){
@@ -872,6 +1263,61 @@ angular.module('app.controllers', [])
         });
      });
   };
+
+  $scope.messageRecieve=function(msg){  
+  
+    //  var to = msg.getAttribute('to');
+    var from = msg.getAttribute('from').split;
+    var type = msg.getAttribute('type');
+    var elems = msg.getElementsByTagName('body');
+    
+    var d = new Date();
+      d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
+
+    if (type == "chat" && elems.length > 0) {
+      
+      var body = elems[0];
+      var textMsg = Strophe.getText(body);
+      
+      
+      $scope.messages.push({
+        userId: from,
+        text: textMsg,
+        time: d
+      });
+      
+      $ionicScrollDelegate.scrollBottom(true);
+      $scope.$apply();
+      
+      console.log($scope.messages);
+      console.log('Message recieved from ' + from + ': ' + textMsg);
+    }
+    
+  }
+  
+  
+   $scope.$on('msgRecievedBroadcast2', function(event, data) {
+    console.log("recibiendo mensaje broadcast");
+    $scope.messageRecieve(data);
+    })
+
+
+  $scope.inputUp = function() {
+    if (isIOS) $scope.data.keyboardHeight = 216;
+    $timeout(function() {
+      $ionicScrollDelegate.scrollBottom(true);
+    }, 300);
+
+  };
+
+  $scope.inputDown = function() {
+    if (isIOS) $scope.data.keyboardHeight = 0;
+    $ionicScrollDelegate.resize();
+  };
+
+  $scope.closeKeyboard = function() {
+    // cordova.plugins.Keyboard.close();
+  };
 })
 
 .controller('productosCtrl', function($scope) {
@@ -902,6 +1348,103 @@ angular.module('app.controllers', [])
 
 })
 
+.controller('tabsCtrl', function($scope, $ionicScrollDelegate, $rootScope, Chats, ChatDetails, $state, Peticiones) {
+  console.log("iniciando tabsCtrl");
+  $scope.messages=[];
+  $scope.messageRecieve=function(msg){  
+    //  var to = msg.getAttribute('to');
+    var from = msg.getAttribute('from');
+    var type = msg.getAttribute('type');
+    var elems = msg.getElementsByTagName('body');
+    
+    var d = new Date();
+      d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
+
+    if (type == "chat" && elems.length > 0) {
+      
+      var body = elems[0];
+      var textMsg = Strophe.getText(body);
+      
+      var message={
+          userId: from,
+          text: textMsg,
+          time: d
+        };
+      $scope.messages.push(message);
+      Chats.addMessage(message);
+      $ionicScrollDelegate.scrollBottom(true);
+      $scope.$apply();
+      
+      console.log($scope.messages);
+      console.log('Message recieved from ' + from + ': ' + textMsg);
+      var to_id = from.split("@")[0];
+      ChatDetailsObj.setTo(to_id+"@ajustadoati.com");
+      $state.go('tabsController.detalleChat', {}, {location: "replace", reload: true});
+    }
+    
+  }
+
+   $scope.messageRecieveFromAdmin=function(msg){  
+      //  var to = msg.getAttribute('to');
+      var from = msg.getAttribute('from');
+      var type = msg.getAttribute('type');
+      var elems = msg.getElementsByTagName('body');
+      var textMessage = Strophe.getText(elems[0]);
+      console.log("admin receive:"+textMessage);
+      var all = textMessage.split("---");
+      var text = all[0];
+      var latitud = all[1];
+      var longitud = all[2];
+      
+      var d = new Date();
+        d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
+
+      if (type == "chat" && elems.length > 0) {
+        
+        var body = elems[0];
+        var textMsg = Strophe.getText(body);
+        
+        var message={
+            userId: from,
+            text: textMsg,
+            time: d
+          };
+
+        var peticion={
+            user:from.split("@")[0],
+            text: text,
+            latitud:latitud,
+            longitud:longitud,
+            time: d
+          };
+        //$scope.messages.push(message);
+        //Chats.addMessage(message);
+        $ionicScrollDelegate.scrollBottom(true);
+        //$scope.$apply();
+        
+        console.log($scope.messages);
+        console.log('Message recieved from ' + from + ': ' + textMsg);
+        var to_id = from.split("@")[0];
+        ChatDetailsObj.setTo(to_id+"@ajustadoati.com");
+        //Peticiones.add(peticion);
+        $state.go('tabsController.peticionDetalle', {peticion:peticion}, {location: "replace", reload: false});
+    }
+    
+  }
+  
+  
+   $rootScope.$on('msgRecievedBroadcast', function(event, data) {
+    console.log('Message recieved from ');
+    $scope.messageRecieve(data);
+    })
+
+   $rootScope.$on('msgRecievedBroadcastAdmin', function(event, data) {
+    console.log('Message recieved from admin');
+    $scope.messageRecieveFromAdmin(data);
+    })
+
+})
+
 .controller('comercianteCtrl', function($scope, $state, usuarioService, $stateParams, ChatDetails) {
   console.log("Comerciante Ctrl");
 
@@ -920,7 +1463,7 @@ angular.module('app.controllers', [])
 
 
 })
-.controller('detalleChatCtrl', function($scope, $timeout, $ionicScrollDelegate,sharedConn,ChatDetails) {
+.controller('detalleChatCtrl', function($scope, $timeout, $ionicScrollDelegate,sharedConn,ChatDetails, $rootScope) {
 
   $scope.hideTime = true;
   $scope.data = {};
@@ -993,7 +1536,8 @@ angular.module('app.controllers', [])
   }
   
   
-   $scope.$on('msgRecievedBroadcast', function(event, data) {
+   $rootScope.$on('msgRecievedBroadcast2', function(event, data) {
+    console.log('Message recieved from ');
     $scope.messageRecieve(data);
     })
 
