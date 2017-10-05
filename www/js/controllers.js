@@ -347,10 +347,27 @@ angular.module('app.controllers', [])
   $scope.map={};
   $scope.markers=[];
   $scope.mensaje=$stateParams.mensaje;
-  $scope.userActual=sharedConn.getConnectObj().jid.split("@")[0];
+  
 
+  $scope.userActual="";
 
+  if(sharedConn.getConnectObj()!=null)
+    $scope.userActual=sharedConn.getConnectObj().jid.split("@")[0];
 
+  $scope.borrar = function(){
+    console.log("resetting searching");
+    $scope.consulta.producto.nombre="";
+    $scope.consulta.producto.descripcion="";
+    if($scope.markers.length > 0){
+      for (var i=0;i<$scope.markers.length;i++) {
+       
+            $scope.markers[i].setMap(null);
+           
+      }
+     $scope.markers=[];
+   }
+
+  };
 
   var ws = new WebSocket('ws://www.ajustadoati.com:8080/ajustadoatiWS/openfire');
 
@@ -482,6 +499,20 @@ angular.module('app.controllers', [])
               '<br><b>Mensaje:</b> <a href="#/homeVendedor/requests/'+marker.usuario+'">  '+marker.mensaje+
               '</a></div>'+
               '</div>';
+            if($scope.userActual==""){
+              contentString = '<div id="content">'+
+                '<div id="siteNotice">'+
+                '</div>'+
+                '<h1 id="firstHeading" class="firstHeading">Proveedor</h1>'+
+                '<div id="bodyContent">'+
+                '<p><b>Nombre:</b> ' +marker.nombre+
+                '<br><b>Tel&eacute;fono:</b> '+marker.telefono+
+                '<br><b>Usuario:</b>  '+ marker.usuario+
+                '<br><b>Mensaje:</b>  '+marker.mensaje+
+                '</div>'+
+                '</div>';
+
+            }
             var latLng = new google.maps.LatLng(marker.latitude, marker.longitude);
 
            
@@ -730,7 +761,7 @@ angular.module('app.controllers', [])
                   $scope.proveedores=data;
                   $scope.latitud = $scope.consulta.usuario.latitud;
                   $scope.longitud = $scope.consulta.usuario.longitud;
-                  $scope.consulta={};
+                  //$scope.consulta={};
                   $scope.categoriasSelected=[];
                   
                   //$state.go("/login");

@@ -91,7 +91,7 @@ return categoriaService;
   
   
 }])
-.factory('MapService', function ($cordovaGeolocation) {
+.factory('MapService', function ($cordovaGeolocation, $ionicPopup) {
 
     var markerId = 0;
 
@@ -186,7 +186,11 @@ function getCurrentLocation(successCallback) {
         
        
         }, function(err) {
-            console.log(err);
+            var alertPopup = $ionicPopup.alert({
+                title: 'No se ha podido obtener la ubicaci&oacute;n',
+                template: 'Por favor intenta de nuevo!'
+              });
+        
         });
       
     }
