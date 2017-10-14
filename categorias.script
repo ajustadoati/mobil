@@ -1,0 +1,6 @@
+CREATE (aa:Categoria {nombre:"Ayuda personal", descripcion:"Ayuda personal"});
+CREATE (aa:Categoria {nombre:"Cosméticos", descripcion:"Cosméticos"});
+CREATE (aa:Categoria {nombre:"Medicina", descripcion:"Medicina"});
+CREATE (aa:Categoria {nombre:"Restaurante", descripcion:"Restaurante"});
+CREATE (aa:Categoria {nombre:"Servicio de abogado", descripcion:"Servicio de abogado"});
+

@@ -156,6 +156,19 @@ angular.module('app.routes', [])
         }
       }
     })
+     .state('tabsController.infoFavorito', {
+      url: '/infoFavorito',
+      params:{
+            user:null
+      },
+      views: {
+        'tab5': {
+          templateUrl: 'templates/infoFavorito.html',
+          controller: 'infoFavoritoCtrl',
+
+        }
+      }
+    })
 
     .state('tabsController.productos', {
       url: '/items',

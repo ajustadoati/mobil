@@ -333,7 +333,7 @@ angular.module('app.controllers', [])
 
 })
    
-.controller('busquedaCtrl', function($scope, categoriaService, consultaService, $cordovaGeolocation, MapService, sharedConn, $stateParams, ChatDetails) {
+.controller('busquedaCtrl', function($scope, categoriaService, consultaService, $cordovaGeolocation, MapService, sharedConn, $stateParams, ChatDetails, $ionicPopup) {
   console.log("busquedaCtrl")
   $scope.categorias=[];
   $scope.categoriasSelected=[];
@@ -348,6 +348,7 @@ angular.module('app.controllers', [])
   $scope.markers=[];
   $scope.mensaje=$stateParams.mensaje;
   
+
 
   $scope.userActual="";
 
@@ -679,22 +680,28 @@ angular.module('app.controllers', [])
     console.log(value); 
     var cats=value.split("-");  
     if(cats.length>0){
-      
-      for(var i=0;i<cats.length;i++){
-        console.log("categoria:"+cats[i]);
-        for(var j=0; j<$scope.categorias.length;j++){
-                    var categoria=[];
-                    
-                    //categoria.selected=false;
-                    categoria.id=j;
-                    categoria.nombre=$scope.categorias[j].nombre;
-                    categoria.descripcion=$scope.categorias[j].descripcion;
-                    
-                    if(categoria.nombre===cats[i]){
-                      console.log("Se agrega la categoria:"+categoria.nombre);
-                      $scope.categoriasSelected.push(categoria);
-                    }
-               }
+      if(cats.length>1){
+          var alertPopup = $ionicPopup.alert({
+                title: 'Excede la cantidad de categor&iacute;as',
+                template: 'Por favor seleccione solo 1 categor&iacute;a!'
+              });
+      }else{
+        for(var i=0;i<cats.length;i++){
+          console.log("categoria:"+cats[i]);
+          for(var j=0; j<$scope.categorias.length;j++){
+                      var categoria=[];
+                      
+                      //categoria.selected=false;
+                      categoria.id=j;
+                      categoria.nombre=$scope.categorias[j].nombre;
+                      categoria.descripcion=$scope.categorias[j].descripcion;
+                      
+                      if(categoria.nombre===cats[i]){
+                        console.log("Se agrega la categoria:"+categoria.nombre);
+                        $scope.categoriasSelected.push(categoria);
+                      }
+                 }
+        }
       }
     }
 
@@ -1104,10 +1111,29 @@ angular.module('app.controllers', [])
 
 
 
-  $scope.chatDetails=function(to_id){ 
-    ChatDetailsObj.setTo(to_id+"@ajustadoati.com");
-    $state.go('tabsController.favoritosChat', {}, {location: "replace", reload: true});
+  $scope.favoriteDetails=function(to_id){ 
+    usuarioService.getUserByUser(to_id)
+        .success(function (data) {
+            if(!(data.status != null && data.status != undefined)){
+             console.log('User exist '+data.telefono);
+               $scope.add_jid = "";
+               $state.go('tabsController.infoFavorito', {user:data});
+              
+            }else{
+              $scope.add_jid = "";
+              var alertPopup = $ionicPopup.alert({
+                title: 'No existe informaci&oacute;n !',
+                template: 'Por favor intenta de nuevo!'
+              });
+            }
+        }).
+        error(function(error) {
+            $scope.status = 'Unable to get user: ' + error.message;
+        });
     };
+
+
+
 
   
 
@@ -1154,6 +1180,7 @@ angular.module('app.controllers', [])
   }
 
   $scope.chatDetails=function(to_id){ 
+
     ChatDetailsObj.setTo(to_id+"@ajustadoati.com");
     $state.go('tabsController.favoritosChat', {}, {location: "replace", reload: true});
     };
@@ -1175,7 +1202,7 @@ angular.module('app.controllers', [])
               
             }else{
               var alertPopup = $ionicPopup.alert({
-                title: 'No se puede agregar conatcto !',
+                title: 'No se puede agregar contacto !',
                 template: 'Por favor intenta de nuevo!'
               });
             }
@@ -1593,6 +1620,22 @@ angular.module('app.controllers', [])
 
 
 
+})
+.controller('infoFavoritoCtrl', function($scope, $stateParams, Chats, usuarioService, sharedConn, $state) {
+  console.log("cargando info favorito"+$stateParams.user.user);
+  $scope.usuario=$stateParams.user;
+  $scope.user = sharedConn.getConnectObj().jid.split("@")[0];
+  $scope.logout=function(){
+    console.log("T");
+    sharedConn.logout();
+    $state.go('login', {}, {location: "replace", reload: true});
+  };
+
+   $scope.chatDetails=function(to_id){ 
+    console.log("user: "+to_id);
+    ChatDetailsObj.setTo(to_id+"@ajustadoati.com");
+    $state.go('tabsController.favoritosChat', {}, {location: "replace", reload: true});
+  };
 })
 .controller('settingsCtrl', function($scope,$state,sharedConn) {
   

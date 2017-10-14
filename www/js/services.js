@@ -273,9 +273,9 @@ function getCurrentLocation(successCallback) {
                             $(iq).find("item").each(function(){
                                 
                                 ChatsObj.roster.push({
-                                    id: $(this).attr("jid"),
-                                    name:  $(this).attr("name") || $(this).attr("jid"),
-                                    lastText: 'Available to Chat',
+                                    id: $(this).attr("jid").split("@")[0],
+                                    name:  $(this).attr("name") || $(this).attr("jid").split("@")[0],
+                                    lastText: 'Disponible',
                                     face: 'img/ben.png'
                                 });
                 
@@ -325,9 +325,9 @@ function getCurrentLocation(successCallback) {
                                     
                                     //roster update via Client 1(ie this client) accepting request
                                     if($(this).attr("subscription")=="from"){
-                                        
+                                        console.log("obteniendo jid");
                                         ChatsObj.roster.push({
-                                            id: $(this).attr("jid"),
+                                            id: $(this).attr("jid").split("@")[0],
                                             name:  $(this).attr("name") || $(this).attr("jid"),
                                             lastText: 'Available to Chat',
                                             face: 'img/ben.png'
@@ -337,9 +337,9 @@ function getCurrentLocation(successCallback) {
                                     else if ( $(this).attr("subscription")=="none"  && $(this).attr("ask")=="subscribe" ){
                                         
                                         ChatsObj.roster.push({
-                                            id: $(this).attr("jid"),
+                                            id: $(this).attr("jid").split("@")[0],
                                             name:  $(this).attr("name") || $(this).attr("jid"),
-                                            lastText: 'Waiting to Accept',
+                                            lastText: 'Esperando aceptaci&oacute;n',
                                             face: 'img/ben.png'
                                         });
                                         
@@ -349,7 +349,7 @@ function getCurrentLocation(successCallback) {
                                     //roster update via Client 2 deleting the roster contact
                                     else if($(this).attr("subscription")=="none"){ 
                                         console.log( $(this).attr("jid")  );
-                                        ChatsObj.removeRoster( ChatsObj.getRoster( $(this).attr("jid") ) );
+                                        ChatsObj.removeRoster( ChatsObj.getRoster( $(this).attr("jid").split("@")[0] ) );
                                     }
                                     
                                 });
@@ -412,7 +412,7 @@ function getCurrentLocation(successCallback) {
     
    ChatsObj.addNewRosterContact=function(to_id){
         console.log("agregando usuario: "+to_id);
-        connection.send($pres({ to: to_id , type: "subscribe" }));
+        connection.send($pres({ to: to_id+"@ajustadoati.com" , type: "subscribe" }));
         console.log("Respuesta: ");      
     }
         
@@ -488,6 +488,11 @@ $ionicPopup for making Responsive Popups
             //Now finally go the Chats page     
             $state.go('tabsController.favoritos', {}, {location: "replace", reload: true});
 
+        }else{
+             var alertPopup = $ionicPopup.alert({
+                title: 'Usuario o clave incorrecto',
+                template: 'Por favor intenta de nuevo!'
+              });
         }
     };
     //When a new message is recieved
@@ -594,8 +599,8 @@ $ionicPopup for making Responsive Popups
             //the friend request is recieved from Client 2
             //Creats a ionic popup
             var confirmPopup = $ionicPopup.confirm({
-                title: 'Confirm Friend Request!',
-                template: ' ' + stanza.getAttribute("from")+' wants to be your freind'
+                title: 'Confirmar solicitud de amistad!',
+                template: ' ' + stanza.getAttribute("from")+' quiere ser tu contacto'
             });
             // Yes or No option
             confirmPopup.then(function(res) {
