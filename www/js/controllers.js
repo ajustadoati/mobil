@@ -1637,12 +1637,24 @@ angular.module('app.controllers', [])
     $state.go('tabsController.favoritosChat', {}, {location: "replace", reload: true});
   };
 })
-.controller('settingsCtrl', function($scope,$state,sharedConn) {
-  
+.controller('settingsCtrl', function($scope,$state,sharedConn, usuarioService, $window, $ionicHistory) {
+  $scope.user=sharedConn.getConnectObj().jid.split("@")[0];
+  $scope.usuario={};
+
+   usuarioService.getUserByUser($scope.user)
+                      .success(function (data) {
+        console.log("nombre:"+data.nombre);
+        $scope.usuario = data;
+  });
   $scope.logout=function(){
     console.log("T");
     sharedConn.logout();
+    $window.localStorage.clear();
+    $ionicHistory.clearCache();
+    $ionicHistory.clearHistory();
     $state.go('login', {}, {location: "replace", reload: true});
   };
+
+
 });
  
