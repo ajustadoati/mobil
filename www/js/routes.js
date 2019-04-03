@@ -49,6 +49,7 @@ angular.module('app.routes', [])
 
     .state('tabsController.solicitudes', {
       url: '/requests',
+      cache:true,
       params:{
             mensaje:null
       },
@@ -72,6 +73,7 @@ angular.module('app.routes', [])
 
     .state('tabsController.peticionDetalle', {
       url: '/peticionDetalle',
+      cache:true,
       params:{
             peticion:null
       },

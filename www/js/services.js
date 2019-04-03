@@ -507,9 +507,10 @@ $ionicPopup for making Responsive Popups
         var user = msg.getAttribute("from").split("@")[0];
           console.log("admin receive:"+textMsg);
           var all = textMsg.split("---");
-          var text = all[0];
-          var latitud = all[1];
-          var longitud = all[2];
+          var code = all[0];
+          var text = all[1];
+          var latitud = all[2];
+          var longitud = all[3];
         //Here we will braodcast that we have recieved a message.
         //This broadcast will be handled in the 'Chat Details controller'
         //In broadcast we are also sending the message
@@ -522,6 +523,8 @@ $ionicPopup for making Responsive Popups
             var d = new Date();
             d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
             var peticion={
+                code:code, 
+
                 user:user,
                 text: text,
                 latitud:latitud,
@@ -533,12 +536,13 @@ $ionicPopup for making Responsive Popups
                 PeticionObj.addPeticion(peticion);
             }else{
                 var confirmPopup = $ionicPopup.confirm({
-                            title: 'Message from:'+user,
+                            title: 'Mensaje de:'+user,
                             template: ' ' + text
                         });
                         // Yes or No option
                         confirmPopup.then(function(res) {
                             if(res) {
+                                PeticionObj.addPeticion(peticion);
                                 $rootScope.$broadcast('msgRecievedBroadcastAdmin', msg);
                               } else {
 
@@ -554,7 +558,7 @@ $ionicPopup for making Responsive Popups
                 $rootScope.$broadcast('msgRecievedBroadcast2', msg);
             }else{
                 var confirmPopup = $ionicPopup.confirm({
-                        title: 'Message from:'+msg.getAttribute("from"),
+                        title: 'Mensaje de:'+msg.getAttribute("from"),
                         template: ' ' + textMsg
                     });
                     // Yes or No option

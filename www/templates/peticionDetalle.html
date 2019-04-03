@@ -1,6 +1,6 @@
 <ion-view title="Pedido">
     <ion-content overflow-scroll="true" padding="true" scroll="true" class="has-header">
-        <div id="map" data-tap-disabled="true"></div>
+        <div id="mapRequest" data-tap-disabled="true"></div>
         <form class="list" name="newSearchForm">
             
             <ion-list>
@@ -17,7 +17,7 @@
     </ion-content>
     <ion-footer-bar keyboard-attach class="bar-stable item-input-inset">
     <label class="item-input-wrapper">
-      <input type="text" placeholder="Type your message" on-return="showSendMessage(); closeKeyboard()" ng-model="response" on-focus="inputUp()" on-blur="inputDown()" />
+      <input type="text" placeholder="Escribe su respuesta" on-return="showSendMessage(); closeKeyboard()" ng-model="response" on-focus="inputUp()" on-blur="inputDown()" />
     </label>
     <button class="button button-clear" ng-click="showSendMessage()">
         Send

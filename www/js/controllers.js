@@ -370,7 +370,7 @@ angular.module('app.controllers', [])
 
   };
 
-  var ws = new WebSocket('ws://www.ajustadoati.com:8080/ajustadoatiWS/openfire');
+  var ws = new WebSocket('wss://ajustadoati.com:8443/ajustadoatiWS/openfire');
 
     ws.onopen = function () {
         console.log('open');
@@ -433,7 +433,7 @@ angular.module('app.controllers', [])
              var contentString = '<div id="content">'+
               '<div id="siteNotice">'+
               '</div>'+
-              '<h1 id="firstHeading" class="firstHeading">' +data.nombre+'</h1>'+
+              '<center><h3 id="firstHeading">' +data.nombre+'</h3></center>'+
               '<div id="bodyContent">'+
               '<br><b>Tel&eacute;fono:</b> '+marker.telefono+
               '<br><b>Usuario:</b>  '+ marker.usuario+
@@ -477,7 +477,7 @@ angular.module('app.controllers', [])
         $scope.addLocationResponder= function(latitud, longitud, data){
           var resultado;
           var image = {
-            url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+            url: 'img/location_resp.png',
             size: new google.maps.Size(20, 32),
             origin: new google.maps.Point(0, 0),
             anchor: new google.maps.Point(0, 32)
@@ -493,7 +493,7 @@ angular.module('app.controllers', [])
              var contentString = '<div id="content">'+
               '<div id="siteNotice">'+
               '</div>'+
-              '<h1 id="firstHeading" class="firstHeading">' +data.nombre+'</h1>'+
+              '<center><h3 id="firstHeading">' +data.nombre+'</h3></center>'+
               '<div id="bodyContent">'+
               '<br><b>Tel&eacute;fono:</b> '+marker.telefono+
               '<br><b>Usuario:</b>  '+ marker.usuario+
@@ -553,7 +553,7 @@ angular.module('app.controllers', [])
         $scope.addLocationRequest= function(latitud, longitud, data){
           var resultado;
           var image = {
-            url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+            url: 'img/location_resp.png',
             size: new google.maps.Size(20, 32),
             origin: new google.maps.Point(0, 0),
             anchor: new google.maps.Point(0, 32)
@@ -563,13 +563,13 @@ angular.module('app.controllers', [])
             coords: [1, 1, 1, 20, 18, 20, 18, 1],
             type: 'poly'
           };
-          console.log("****************** agregando egistro:*************"+data.usuario);
+          console.log("****************** agregando registro:*************"+data.usuario);
           MapService.createByCoords(latitud, longitud, data, function (marker) {
            
              var contentString = '<div id="content">'+
               '<div id="siteNotice">'+
               '</div>'+
-              '<h1 id="firstHeading" class="firstHeading">' +data.nombre+'</h1>'+
+              '<h3 id="firstHeading">' +data.nombre+'</h3>'+
               '<div id="bodyContent">'+
               '<br><b>Tel&eacute;fono:</b> '+marker.telefono+
               '<br><b>Usuario:</b>  '+ marker.usuario+
@@ -648,7 +648,7 @@ angular.module('app.controllers', [])
              var contentString = '<div id="content">'+
                 '<div id="siteNotice">'+
                 '</div>'+
-                '<h1 id="firstHeading" class="firstHeading">Proveedor</h1>'+
+                '<h3 id="firstHeading">Proveedor</h3>'+
                 '<div id="bodyContent">'+
                 '<p><b>Nombre:</b> ' +mark.nombre+
                 '<br><b>Tel&eacute;fono:</b> '+mark.telefono+
@@ -820,7 +820,7 @@ angular.module('app.controllers', [])
     
 })
 
-.controller('peticionDetalleCtrl', function($scope, categoriaService, consultaService, $cordovaGeolocation, MapService, $stateParams, sharedConn, $ionicScrollDelegate) {
+.controller('peticionDetalleCtrl', function($scope, categoriaService, consultaService, $cordovaGeolocation, MapService, $stateParams, sharedConn, $ionicScrollDelegate, $ionicPopup, $state) {
   console.log("peticionCtrl"+$stateParams.peticion.latitud);
   $scope.categorias=[];
   $scope.categoriasSelected=[];
@@ -843,14 +843,14 @@ angular.module('app.controllers', [])
     zoom: 13,
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
-  $scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
+  $scope.map = new google.maps.Map(document.getElementById("mapRequest"), mapOptions);
 
 
      $scope.addLocation= function(latitud, longitud){
           var resultado;
 
             var image = {
-            url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+            url: 'img/location_resp.png',
             size: new google.maps.Size(20, 32),
             origin: new google.maps.Point(0, 0),
             anchor: new google.maps.Point(0, 32)
@@ -868,7 +868,7 @@ angular.module('app.controllers', [])
           };
           console.log("****************** agregando registro:*************"+data.usuario);
           MapService.createByCoords(latitud, longitud, data, function (marker) {
-            console.log("PeticionCtrl-- en el createcoords"+marker.latitud);
+            console.log("PeticionCtrl-- en el createcoords"+marker.latitude);
              var contentString = '<div id="content">'+
               '<div id="siteNotice">'+
               '</div>'+
@@ -930,7 +930,7 @@ angular.module('app.controllers', [])
         $scope.addLocationResponder= function(latitud, longitud, data){
           var resultado;
           var image = {
-            url: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png',
+            url: 'img/location_resp.png',
             size: new google.maps.Size(20, 32),
             origin: new google.maps.Point(0, 0),
             anchor: new google.maps.Point(0, 32)
@@ -989,88 +989,43 @@ angular.module('app.controllers', [])
           return resultado;
         }
 
-     /* MapService.createByCurrentLocation(function (marker) {
-                console.log("Llamando al service test");
-                marker.options.labelContent = 'Usted esta aqu&iacute;';
-                $scope.consulta.usuario.latitud=marker.latitude;
-                $scope.consulta.usuario.longitud=marker.longitude;
-
-                
-                //refresh(marker
-                var latLng = new google.maps.LatLng($scope.consulta.usuario.latitud, $scope.consulta.usuario.longitud);
- 
-              var mapOptions = {
-                center: latLng,
-                zoom: 13,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
-              };
-           
-              $scope.map = new google.maps.Map(document.getElementById("map"), mapOptions);
-              google.maps.event.addListenerOnce($scope.map, 'idle', function(){
-           
-                var mark = new google.maps.Marker({
-                  map: $scope.map,
-                  animation: google.maps.Animation.DROP,
-                  position: latLng,
-                  mensaje:"mensaje",
-                  nombre:"usuario-ajustado",
-                  telefono:"555-555",
-                  usuario:"usuario-ajustado",
-                });      
-                $scope.markers.push(mark);
-             console.log("size: "+$scope.markers.length);
-             var contentString = '<div id="content">'+
-                '<div id="siteNotice">'+
-                '</div>'+
-                '<h1 id="firstHeading" class="firstHeading">Proveedor</h1>'+
-                '<div id="bodyContent">'+
-                '<p><b>Nombre:</b> ' +mark.nombre+
-                '<br><b>Tel&eacute;fono:</b> '+mark.telefono+
-                '<br><b>Usuario:</b>  '+ mark.usuario+
-                '<br><b>Mensaje:</b>  '+mark.mensaje+
-                '</div>'+
-                '</div>';
-              var infoWindow = new google.maps.InfoWindow({
-                  content:"Usted esta aqu&iacute; !"
-              });
-             
-            google.maps.event.addListener(mark, 'click', function () {
-                infoWindow.open($scope.map, mark);
-            });
-          });
-              
-     });*/
-
+     
+     //metodo para responder a las petciones
     $scope.sendMsg=function(to,body){
-    var to_jid  = Strophe.getBareJidFromJid(to);
-    console.log("sending message"+to_jid);
-    var timestamp = new Date().getTime();
-    var reqChannelsItems = $msg({id:timestamp, to:to_jid , type: 'chat' })
-                   .c("body").t(body);
-    $scope.response="";
-    console.log(reqChannelsItems);
-    sharedConn.getConnectObj().send(reqChannelsItems.tree()); 
-  };
+      var to_jid  = Strophe.getBareJidFromJid(to);
+      console.log("sending message"+to_jid);
+      var timestamp = new Date().getTime();
+      var reqChannelsItems = $msg({id:timestamp, to:to_jid , type: 'chat' })
+                     .c("body").t(body);
+      $scope.response="";
+      console.log(reqChannelsItems);
+      sharedConn.getConnectObj().send(reqChannelsItems.tree());
+      /*var alertPopup = $ionicPopup.alert({
+          title: 'Mensaje Enviado',
+          template: 'Se ha enviado mensaje a Usuario. Gracias por responder!'
+      });*/
+      //$state.go('tabsController.favoritos');
+    };
   
   
 
-  $scope.showSendMessage = function() {
-    
-  $scope.sendMsg($scope.peticion.user+"@ajustadoati.com",$scope.response);  
+    $scope.showSendMessage = function() {
+      
+      $scope.sendMsg($scope.peticion.user+"@ajustadoati.com",$scope.peticion.code+"---"+$scope.response);  
 
-    var d = new Date();
-    d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
+        var d = new Date();
+        d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
 
-    /*$scope.messages.push({
-      userId: $scope.myId,
-      text: $scope.response,
-      time: d
-    });
+        /*$scope.messages.push({
+          userId: $scope.myId,
+          text: $scope.response,
+          time: d
+        });
 
-    delete $scope.data.message;*/
-    $ionicScrollDelegate.scrollBottom(true);
+        delete $scope.data.message;*/
+        $ionicScrollDelegate.scrollBottom(true);
 
-  };
+    };
     
 })
    
@@ -1448,16 +1403,17 @@ angular.module('app.controllers', [])
       var type = msg.getAttribute('type');
       var elems = msg.getElementsByTagName('body');
       var textMessage = Strophe.getText(elems[0]);
-      console.log("admin receive:"+textMessage);
+      console.log("admin received:"+msg);
+      console.log("type received:"+type);
       var all = textMessage.split("---");
       var text = all[0];
       var latitud = all[1];
       var longitud = all[2];
-      
+      console.log("msg received:"+textMessage);
       var d = new Date();
         d = d.toLocaleTimeString().replace(/:\d+ /, ' ');
 
-      if (type == "chat" && elems.length > 0) {
+      //if (type == "chat" && elems.length > 0) {
         
         var body = elems[0];
         var textMsg = Strophe.getText(body);
@@ -1485,8 +1441,8 @@ angular.module('app.controllers', [])
         var to_id = from.split("@")[0];
         ChatDetailsObj.setTo(to_id+"@ajustadoati.com");
         //Peticiones.add(peticion);
-        $state.go('tabsController.peticionDetalle', {peticion:peticion}, {location: "replace", reload: false});
-    }
+        $state.go('tabsController.peticion', {}, {reload: true,inherit: false, notify: true});
+    //}
     
   }
   
@@ -1649,9 +1605,9 @@ angular.module('app.controllers', [])
   $scope.logout=function(){
     console.log("T");
     sharedConn.logout();
-    $window.localStorage.clear();
-    $ionicHistory.clearCache();
-    $ionicHistory.clearHistory();
+    //$window.localStorage.clear();
+    //$ionicHistory.clearCache();
+    //$ionicHistory.clearHistory();
     $state.go('login', {}, {location: "replace", reload: true});
   };
 
